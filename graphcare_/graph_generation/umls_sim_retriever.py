@@ -1,10 +1,14 @@
 import pickle
+from idlelib.iomenu import encoding
+
 import numpy as np
 from tqdm import tqdm
 import multiprocessing
 
+
 def cosine_similarity(u, v):
     return np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
+
 
 def find_most_similar_embedding(target_emb, umls_ent_emb):
     max_similarity = -1
@@ -19,9 +23,11 @@ def find_most_similar_embedding(target_emb, umls_ent_emb):
     else:
         return None
 
+
 def process_chunk(chunk, id2emb, umls_ent_emb, output_dict):
-    for key in chunk:
+    for key in tqdm(chunk, desc='2 Processing chunk'):
         output_dict[key] = find_most_similar_embedding(id2emb[key], umls_ent_emb)
+
 
 def parallel_mapping(id2emb, umls_ent_emb, num_processes):
     keys = list(id2emb.keys())
@@ -30,7 +36,7 @@ def parallel_mapping(id2emb, umls_ent_emb, num_processes):
     output_dict = manager.dict()
     processes = []
 
-    for chunk in chunks:
+    for chunk in tqdm(chunks, desc='1 Processing chunks'):
         p = multiprocessing.Process(target=process_chunk, args=(chunk, id2emb, umls_ent_emb, output_dict))
         processes.append(p)
         p.start()
@@ -40,10 +46,12 @@ def parallel_mapping(id2emb, umls_ent_emb, num_processes):
 
     return dict(output_dict)
 
+
 if __name__ == "__main__":
-    with open("/home/pj20/GraphCare/KG_mapping/umls/concept_names.txt", 'r') as f:
-        umls_ent = f.readlines() 
-    
+    # with open("/home/pj20/GraphCare/KG_mapping/umls/concept_names.txt", 'r') as f:
+    with open("../../KG_mapping/umls/concept_names.txt", 'r', encoding='utf-8') as f:
+        umls_ent = f.readlines()
+
     umls_ids = []
     umls_names = []
 
@@ -52,22 +60,18 @@ if __name__ == "__main__":
         umls_name = line.split('\t')[1][:-1]
         umls_names.append(umls_name)
         umls_ids.append(umls_id)
-        
-        
 
-    with open('/data/pj20/exp_data/umls_ent_emb_.pkl', 'rb') as f:
+    with open('../../data/pj20/exp_data/umls_ent_emb_.pkl', 'rb') as f:
         umls_ent_emb = pickle.load(f)
-        
-    with open('/data/pj20/exp_data/atc3_id2emb.pkl', 'rb') as f:
+
+    with open('../../data/pj20/exp_data/atc3_id2emb.pkl', 'rb') as f:
         atc3_id2emb = pickle.load(f)
-        
-    with open('/data/pj20/exp_data/ccscm_id2emb.pkl', 'rb') as f:
+
+    with open('../../data/pj20/exp_data/ccscm_id2emb.pkl', 'rb') as f:
         ccscm_id2emb = pickle.load(f)
-        
-    with open('/data/pj20/exp_data/ccsproc_id2emb.pkl', 'rb') as f:
+
+    with open('../../data/pj20/exp_data/ccsproc_id2emb.pkl', 'rb') as f:
         ccsproc_id2emb = pickle.load(f)
-
-
 
     ccscm2umls, ccsproc2umls, atc32umls = {}, {}, {}
 
@@ -75,17 +79,20 @@ if __name__ == "__main__":
     SIMILARITY_THRESHOLD = 0.7
     num_processes = 30
 
+    print("ccscm2umls parallel_mapping...")
     ccscm2umls = parallel_mapping(ccscm_id2emb, umls_ent_emb, num_processes)
+
+    print("ccsproc2umls parallel_mapping...")
     ccsproc2umls = parallel_mapping(ccsproc_id2emb, umls_ent_emb, num_processes)
+
+    print("atc32umls parallel_mapping...")
     atc32umls = parallel_mapping(atc3_id2emb, umls_ent_emb, num_processes)
 
-    
-    
-    with open('/data/pj20/exp_data/ccscm2umls.pkl', 'wb') as f:
+    with open('../../data/pj20/exp_data/ccscm2umls.pkl', 'wb') as f:
         pickle.dump(ccscm2umls, f)
-        
-    with open('/data/pj20/exp_data/ccsproc2umls.pkl', 'wb') as f:
+
+    with open('../../data/pj20/exp_data/ccsproc2umls.pkl', 'wb') as f:
         pickle.dump(ccsproc2umls, f)
-        
-    with open('/data/pj20/exp_data/atc32umls.pkl', 'wb') as f:
+
+    with open('../../data/pj20/exp_data/atc32umls.pkl', 'wb') as f:
         pickle.dump(atc32umls, f)

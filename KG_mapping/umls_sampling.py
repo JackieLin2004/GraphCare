@@ -60,9 +60,9 @@ def two_hop_mapping(mapping_dict, umls_cuis, triple_set, save_path):
     return triple_count, len(entities), len(relations)
 
 
-ccscm2umls = load_data('/data/pj20/exp_data/ccscm2umls.pkl')
-ccsproc2umls = load_data('/data/pj20/exp_data/ccsproc2umls.pkl')
-atc32umls = load_data('/data/pj20/exp_data/atc32umls.pkl')
+ccscm2umls = load_data('../data/pj20/exp_data/ccscm2umls.pkl')
+ccsproc2umls = load_data('../data/pj20/exp_data/ccsproc2umls.pkl')
+atc32umls = load_data('../data/pj20/exp_data/atc32umls.pkl')
 
 with open('../KG_mapping/umls/umls.csv', 'r') as f:
     lines_1 = f.readlines()

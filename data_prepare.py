@@ -469,6 +469,7 @@ def process_sample_dataset(dataset, task, sample_dataset, G_tg, ent2id, rel2id, 
 
 
 def run(dataset, task):
+    # TODO: 应该有一个是True
     if task == "drugrec":
         load_processed_dataset = False
     else:
